@@ -1,9 +1,6 @@
 """
 Ring and race track resonators
 """
-
-from __future__ import print_function, division
-
 import math
 
 import numpy as np
@@ -13,7 +10,7 @@ from gdshelpers.parts import Port
 from gdshelpers.parts.waveguide import Waveguide
 
 
-class RingResonator(object):
+class RingResonator:
     """
     A simple Ring / Race track resonator.
 

@@ -1,5 +1,3 @@
-from __future__ import division
-
 from math import sqrt
 import numpy as np
 from shapely.affinity import rotate, translate, scale
@@ -7,7 +5,7 @@ from shapely.geometry import Polygon, box
 from shapely.ops import cascaded_union
 
 
-class KITLogo(object):
+class KITLogo:
     """
     A simplified logo of the Karlsruhe Institute of Technology (KIT).
 
@@ -57,7 +55,7 @@ class KITLogo(object):
         return translate(logo, *self.origin)
 
 
-class WWULogo(object):
+class WWULogo:
     """
     WWU Logo with WWU written next to it
 

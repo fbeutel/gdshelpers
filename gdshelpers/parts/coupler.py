@@ -1,5 +1,3 @@
-from __future__ import print_function, division
-
 import math
 import numpy as np
 import shapely.geometry
@@ -12,7 +10,7 @@ from gdshelpers.parts.text import Text
 from gdshelpers.helpers import StandardLayers
 
 
-class GratingCoupler(object):
+class GratingCoupler:
     """
     A standard style radial grating coupler.
 
@@ -123,6 +121,10 @@ class GratingCoupler(object):
         if not implement_cadence_ff_bug:
             apodized_ffs = np.linspace(ap_max_ff, grating_ff, n_ap_gratings)
         else:
+            import warnings
+            warnings.warn(
+                'The usage of implement_cadence_ff_bug is deprecated. It will be removed in the next version.',
+                DeprecationWarning)
             apodized_ffs = np.linspace(ap_max_ff, grating_ff, n_ap_gratings + 1)[1:]
 
         for ap_ff in apodized_ffs:

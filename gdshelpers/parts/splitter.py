@@ -1,5 +1,3 @@
-from __future__ import print_function, division
-
 import math
 import numpy as np
 import shapely.geometry
@@ -10,7 +8,7 @@ from gdshelpers.parts.waveguide import Waveguide
 from gdshelpers.geometry import geometric_union
 
 
-class Splitter(object):
+class Splitter:
     def __init__(self, origin, angle, total_length, wg_width_root, sep, wg_width_branches=None, n_points=50,
                  implement_cadence_bug=False):
         self._origin = origin
@@ -21,6 +19,11 @@ class Splitter(object):
         self._sep = sep
         self._n_points = n_points
         self._implement_cadence_bug = implement_cadence_bug
+
+        if implement_cadence_bug:
+            import warnings
+            warnings.warn('The usage of implement_cadence_bug is deprecated. It will be removed in the next version.',
+                          DeprecationWarning)
 
         self._polygon = None
         self._ports = dict()
@@ -177,7 +180,7 @@ class Splitter(object):
         return self._polygon
 
 
-class DirectionalCoupler(object):
+class DirectionalCoupler:
     def __init__(self, origin, angle, wg_width, length, gap, bend_radius, bend_angle=np.pi / 5.):
         """
         Creates a directional coupler
