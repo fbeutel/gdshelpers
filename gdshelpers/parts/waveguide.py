@@ -102,6 +102,7 @@ class Waveguide:
             assert length >= 0, 'Length of straight segment must not be negative'
 
             self.add_parameterized_path(path=lambda t: [t * length, 0],
+                                        path_derivative=lambda t: [1, 0],
                                         width=lambda t: np.array(self.width) * (1 - t) + np.array(final_width) * t,
                                         sample_points=2, sample_distance=0)
         return self
@@ -154,9 +155,10 @@ class Waveguide:
         approach might be wasteful for paths like (x**2, y). You can suppress resampling for length by passing zero or
         none as sample_distance parameter.
 
-        The width of the generated waveguide may either be constant when passing a number or also be a callable
-        function, using the same parameter as the path. For generating slot/coplanar/... waveguides it is also possible
-        to pass an array of the form `[rail_width_1, gap_width_1, rail_width_2, ...]` which defines the width of each
+        The width of the generated waveguide may be constant when passing a number, or variable along the path
+        when passing an array or a callable function, using the same parameter as the path.
+        For generating slot/coplanar/... waveguides it is also possible to pass an array of the form
+        `[rail_width_1, gap_width_1, rail_width_2, ...]` which defines the width of each
         rail and the gaps between the rails. This array is also allowed to end with a gap_width for positioning the
         rails asymmetrically to the path which can be useful e.g. for strip-to-slot mode converters.
 
@@ -230,15 +232,18 @@ class Waveguide:
         sample_coordinates = self._current_port.origin + np.einsum('ij,kj->ki', rotation_matrix, sample_coordinates)
 
         # Calculate the derivative
-        if path_derivative:
-            assert callable(path_derivative), 'The derivative of the path function must be callable'
+        if callable(path_derivative):
             if path_function_supports_numpy:
                 sample_coordinates_d1 = np.array(path_derivative(sample_t)).T
             else:
                 sample_coordinates_d1 = np.array([path_derivative(x) for x in sample_t])
             sample_coordinates_d1 = np.einsum('ij,kj->ki', rotation_matrix, sample_coordinates_d1)
         else:
-            sample_coordinates_d1 = np.vstack((rotation_matrix[:, 0], np.diff(sample_coordinates, axis=0)))
+            if path_derivative is None:
+                sample_coordinates_d1 = np.vstack((rotation_matrix[:, 0], np.diff(sample_coordinates, axis=0)))
+            else:
+                sample_coordinates_d1 = np.array(path_derivative)
+                sample_coordinates_d1 = np.einsum('ij,kj->ki', rotation_matrix, sample_coordinates_d1)
 
         sample_coordinates_d1_norm = np.linalg.norm(sample_coordinates_d1, axis=1)
         sample_coordinates_d1_normed = sample_coordinates_d1 / sample_coordinates_d1_norm[:, None]
@@ -254,11 +259,13 @@ class Waveguide:
             else:
                 sample_width = np.array([width(x) for x in sample_t])
         else:
-            sample_width = np.array([(width if width else self._current_port.width), ])
+            if width is None:
+                sample_width = np.atleast_1d(self._current_port.width)
+            else:
+                sample_width = np.atleast_1d(width)
 
         if sample_width.ndim == 1:
             sample_width = sample_width[..., None]
-
         # Now we have everything to calculate the polygon
         polygons = []
         half_width = np.sum(sample_width, axis=-1) / 2
